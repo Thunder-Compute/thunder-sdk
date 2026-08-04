@@ -1,0 +1,21 @@
+{
+  "organizationApi": {
+    "enrollmentTokens": {
+      "create": "/api/v1/enrollment-tokens",
+      "deleteNode": "/api/v1/enrollment-tokens/{enrollmentTokenId}/node"
+    },
+    "clients": {
+      "list": "/api/v1/clients",
+      "revoke": "/api/v1/clients/{clientId}/revoke"
+    },
+    "hosts": {
+      "list": "/api/v1/hosts",
+      "revoke": "/api/v1/hosts/{hostId}/revoke"
+    },
+    "zones": {
+      "list": "/api/v1/zones",
+      "create": "/api/v1/zones",
+      "delete": "/api/v1/zones/{zoneId}"
+    }
+  }
+}

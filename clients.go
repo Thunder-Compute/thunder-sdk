@@ -20,7 +20,7 @@ type ClientEnrollmentCommandRequest struct {
 	EnrollmentTokenEnv string
 }
 
-type ClientNode struct {
+type RegisteredClient struct {
 	ClientID         string     `json:"clientId"`
 	ZoneID           string     `json:"zoneId"`
 	DisplayName      string     `json:"displayName"`
@@ -52,8 +52,8 @@ func (c *Client) EnrollClient(ctx context.Context, req CreateClientEnrollmentReq
 	return c.CreateClientEnrollment(ctx, req)
 }
 
-func (c *Client) UnenrollClient(ctx context.Context, enrollmentTokenID string) (DeleteEnrollmentNodeResponse, error) {
-	return c.DeleteEnrollmentNode(ctx, enrollmentTokenID)
+func (c *Client) UnenrollClient(ctx context.Context, enrollmentTokenID string) (DeleteEnrollmentServerResponse, error) {
+	return c.DeleteEnrollmentServer(ctx, enrollmentTokenID)
 }
 
 func (c *Client) ClientEnrollmentCommand(enrollmentToken string) string {
@@ -73,9 +73,9 @@ func clientEnrollmentCommand(installURL, centralURL string, req ClientEnrollment
 		shellQuote(installURL), shellQuote(centralURL), enrollmentToken)
 }
 
-func (c *Client) ListClients(ctx context.Context, zoneID string) ([]ClientNode, error) {
+func (c *Client) ListClients(ctx context.Context, zoneID string) ([]RegisteredClient, error) {
 	var response struct {
-		Clients []ClientNode `json:"clients"`
+		Clients []RegisteredClient `json:"clients"`
 	}
 	path, err := endpointPath("organizationApi.clients.list", nil, url.Values{"zoneId": []string{zoneID}})
 	if err != nil {

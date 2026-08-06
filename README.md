@@ -2,7 +2,7 @@
 
 Thunder SDK is a small Go client library for Thunder Compute integrations. It
 wraps the Thunder Central organization API-token surface used by automation that
-creates enrollment tokens, manages nodes and clients, and works with zones.
+creates enrollment tokens, manages servers and clients, and works with zones.
 
 ## Install
 
@@ -64,18 +64,18 @@ token, err := client.CreateClientEnrollment(ctx, thunder.CreateClientEnrollmentR
 })
 ```
 
-Create a node enrollment token:
+Create a server enrollment token:
 
 ```go
-token, err := client.CreateNodeEnrollment(ctx, thunder.CreateNodeEnrollmentRequest{
+token, err := client.CreateServerEnrollment(ctx, thunder.CreateServerEnrollmentRequest{
 	ZoneID: "zone-1",
 })
 ```
 
-List registered nodes and clients:
+List registered servers and clients:
 
 ```go
-nodes, err := client.ListNodes(ctx, "zone-1")
+servers, err := client.ListServers(ctx, "zone-1")
 clients, err := client.ListClients(ctx, "zone-1")
 ```
 
@@ -89,12 +89,22 @@ zone, err := client.CreateZone(ctx, thunder.CreateZoneRequest{
 err = client.DeleteZone(ctx, zone.ZoneID)
 ```
 
+Read and replace zone GPU oversubscription targets:
+
+```go
+targets, err := client.ListZoneOversubscriptionTargets(ctx, "zone-1")
+
+updated, err := client.SetZoneOversubscriptionTargets(ctx, "zone-1", []thunder.ZoneOversubscriptionTarget{
+	{GPUType: "nvidia-l4", OversubscriptionTarget: 2.5},
+})
+```
+
 Generate install commands for enrollment:
 
 ```go
-cmd := client.NodeEnrollmentCommand(thunder.NodeEnrollmentCommandRequest{
+cmd := client.ServerEnrollmentCommand(thunder.ServerEnrollmentCommandRequest{
 	EnrollmentToken: token.EnrollmentToken,
-	NodeName:        "worker-1",
+	ServerName:      "worker-1",
 })
 fmt.Println(cmd)
 ```
@@ -115,7 +125,7 @@ if thunder.IsForbidden(err) {
 Run the test suite with:
 
 ```sh
-go test ./...
+bazel test //thunder-sdk:thunder_test
 ```
 
 This module has no third-party Go dependencies.

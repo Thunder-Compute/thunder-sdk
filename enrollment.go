@@ -17,12 +17,12 @@ type EnrollmentToken struct {
 	ExpiresAt         *time.Time `json:"expiresAt,omitempty"`
 }
 
-type DeleteEnrollmentNodeResponse struct {
+type DeleteEnrollmentServerResponse struct {
 	EnrollmentTokenID string    `json:"enrollmentTokenId"`
 	Role              string    `json:"role"`
 	ClientID          string    `json:"clientId,omitempty"`
-	HostID            string    `json:"hostId,omitempty"`
-	NodeDeleted       bool      `json:"nodeDeleted"`
+	ServerID          string    `json:"hostId,omitempty"`
+	ServerDeleted     bool      `json:"nodeDeleted"`
 	DeletedAt         time.Time `json:"deletedAt"`
 }
 
@@ -38,14 +38,14 @@ func (c *Client) createEnrollment(ctx context.Context, body any) (EnrollmentToke
 	return response, nil
 }
 
-func (c *Client) DeleteEnrollmentNode(ctx context.Context, enrollmentTokenID string) (DeleteEnrollmentNodeResponse, error) {
-	var response DeleteEnrollmentNodeResponse
-	path, err := endpointPath("organizationApi.enrollmentTokens.deleteNode", map[string]string{"enrollmentTokenId": enrollmentTokenID}, nil)
+func (c *Client) DeleteEnrollmentServer(ctx context.Context, enrollmentTokenID string) (DeleteEnrollmentServerResponse, error) {
+	var response DeleteEnrollmentServerResponse
+	path, err := endpointPath("organizationApi.enrollmentTokens.deleteServer", map[string]string{"enrollmentTokenId": enrollmentTokenID}, nil)
 	if err != nil {
-		return DeleteEnrollmentNodeResponse{}, err
+		return DeleteEnrollmentServerResponse{}, err
 	}
 	if err := c.doJSON(ctx, http.MethodDelete, path, nil, &response); err != nil {
-		return DeleteEnrollmentNodeResponse{}, err
+		return DeleteEnrollmentServerResponse{}, err
 	}
 	return response, nil
 }

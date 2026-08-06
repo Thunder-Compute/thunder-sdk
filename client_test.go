@@ -28,6 +28,14 @@ func TestEndpointPathExpansion(t *testing.T) {
 		t.Fatalf("query path = %q", path)
 	}
 
+	path, err = endpointPath("organizationApi.zones.oversubscriptionTargets", map[string]string{"zoneId": "zone/1"}, nil)
+	if err != nil {
+		t.Fatalf("endpointPath oversubscription targets: %v", err)
+	}
+	if path != "/api/v1/zones/zone%2F1/oversubscription-targets" {
+		t.Fatalf("oversubscription targets path = %q", path)
+	}
+
 	if _, err := endpointPath("organizationApi.zones.delete", nil, nil); err == nil {
 		t.Fatal("missing path parameter error = nil")
 	}
@@ -95,7 +103,7 @@ func TestEnrollmentRequests(t *testing.T) {
 			_, _ = w.Write([]byte(`{"enrollmentTokenId":"et-client","enrollmentToken":"tr_client","orgId":"org-1","zoneId":"zone-1","role":"client","gpuType":"nvidia-l4","gpuCount":2}`))
 		case 2:
 			if body["role"] != RoleServer || body["zoneId"] != "auto" {
-				t.Fatalf("node enrollment body = %#v", body)
+				t.Fatalf("server enrollment body = %#v", body)
 			}
 			if _, ok := body["gpuType"]; ok {
 				t.Fatalf("server enrollment body included gpuType: %#v", body)
@@ -104,7 +112,7 @@ func TestEnrollmentRequests(t *testing.T) {
 				t.Fatalf("server enrollment body included gpuCount: %#v", body)
 			}
 			w.WriteHeader(http.StatusCreated)
-			_, _ = w.Write([]byte(`{"enrollmentTokenId":"et-node","enrollmentToken":"tr_node","orgId":"org-1","zoneId":"auto","role":"server"}`))
+			_, _ = w.Write([]byte(`{"enrollmentTokenId":"et-server","enrollmentToken":"tr_server","orgId":"org-1","zoneId":"auto","role":"server"}`))
 		default:
 			t.Fatalf("unexpected call %d", call)
 		}
@@ -119,12 +127,12 @@ func TestEnrollmentRequests(t *testing.T) {
 	if clientEnrollment.EnrollmentTokenID != "et-client" || clientEnrollment.Role != RoleClient || clientEnrollment.GPUCount != 2 {
 		t.Fatalf("client enrollment = %+v", clientEnrollment)
 	}
-	nodeEnrollment, err := client.EnrollNode(context.Background(), CreateNodeEnrollmentRequest{ZoneID: "auto"})
+	serverEnrollment, err := client.EnrollServer(context.Background(), CreateServerEnrollmentRequest{ZoneID: "auto"})
 	if err != nil {
-		t.Fatalf("EnrollNode: %v", err)
+		t.Fatalf("EnrollServer: %v", err)
 	}
-	if nodeEnrollment.EnrollmentTokenID != "et-node" || nodeEnrollment.Role != RoleServer {
-		t.Fatalf("node enrollment = %+v", nodeEnrollment)
+	if serverEnrollment.EnrollmentTokenID != "et-server" || serverEnrollment.Role != RoleServer {
+		t.Fatalf("server enrollment = %+v", serverEnrollment)
 	}
 }
 
@@ -145,7 +153,7 @@ func TestListRoutes(t *testing.T) {
 			if r.Method != http.MethodGet || r.URL.Query().Get("zoneId") != "zone-1" {
 				t.Fatalf("hosts request = %s %s", r.Method, r.URL.String())
 			}
-			_, _ = w.Write([]byte(`{"hosts":[{"hostId":"host-1","zoneId":"zone-1","displayName":"node","hostname":"node-1","gpuType":"nvidia-l4","gpuCount":1,"status":"online"}]}`))
+			_, _ = w.Write([]byte(`{"hosts":[{"hostId":"host-1","zoneId":"zone-1","displayName":"server","hostname":"server-1","gpuType":"nvidia-l4","gpuCount":1,"status":"online"}]}`))
 		default:
 			t.Fatalf("unexpected path %s", r.URL.Path)
 		}
@@ -157,7 +165,7 @@ func TestListRoutes(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ListZones: %v", err)
 	}
-	if len(zones) != 1 || zones[0].ZoneID != "zone-1" || zones[0].NodeCount != 1 || zones[0].ClientCount != 2 {
+	if len(zones) != 1 || zones[0].ZoneID != "zone-1" || zones[0].ServerCount != 1 || zones[0].ClientCount != 2 {
 		t.Fatalf("zones = %+v", zones)
 	}
 	clients, err := client.ListClients(context.Background(), "zone-1")
@@ -167,12 +175,66 @@ func TestListRoutes(t *testing.T) {
 	if len(clients) != 1 || clients[0].ClientID != "client-1" || clients[0].GPUCount != 1 {
 		t.Fatalf("clients = %+v", clients)
 	}
-	nodes, err := client.ListNodes(context.Background(), "zone-1")
+	servers, err := client.ListServers(context.Background(), "zone-1")
 	if err != nil {
-		t.Fatalf("ListNodes: %v", err)
+		t.Fatalf("ListServers: %v", err)
 	}
-	if len(nodes) != 1 || nodes[0].HostID != "host-1" || nodes[0].Status != "online" {
-		t.Fatalf("nodes = %+v", nodes)
+	if len(servers) != 1 || servers[0].ServerID != "host-1" || servers[0].Status != "online" {
+		t.Fatalf("servers = %+v", servers)
+	}
+}
+
+func TestZoneOversubscriptionTargets(t *testing.T) {
+	call := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/api/v1/zones/zone-1/oversubscription-targets" {
+			t.Fatalf("path = %s", r.URL.Path)
+		}
+		call++
+		switch call {
+		case 1:
+			if r.Method != http.MethodGet {
+				t.Fatalf("list method = %s", r.Method)
+			}
+			_, _ = w.Write([]byte(`{"oversubscriptionTargets":[{"gpuType":"nvidia-l4","oversubscriptionTarget":2.5}],"defaultOversubscriptionTarget":1}`))
+		case 2:
+			if r.Method != http.MethodPut {
+				t.Fatalf("replace method = %s", r.Method)
+			}
+			var body struct {
+				OversubscriptionTargets []ZoneOversubscriptionTarget `json:"oversubscriptionTargets"`
+			}
+			if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+				t.Fatalf("decode request: %v", err)
+			}
+			if len(body.OversubscriptionTargets) != 2 || body.OversubscriptionTargets[0].GPUType != "nvidia-l4" || body.OversubscriptionTargets[0].OversubscriptionTarget != 2.5 || body.OversubscriptionTargets[1].GPUType != "nvidia-h100" || body.OversubscriptionTargets[1].OversubscriptionTarget != 1.25 {
+				t.Fatalf("request body = %+v", body)
+			}
+			_, _ = w.Write([]byte(`{"oversubscriptionTargets":[{"gpuType":"nvidia-l4","oversubscriptionTarget":2.5},{"gpuType":"nvidia-h100","oversubscriptionTarget":1.25}],"defaultOversubscriptionTarget":1}`))
+		default:
+			t.Fatalf("unexpected call %d", call)
+		}
+	}))
+	defer server.Close()
+
+	client := NewClient(server.URL, "tcapi_test", WithHTTPClient(server.Client()))
+	targets, err := client.ListZoneOversubscriptionTargets(context.Background(), "zone-1")
+	if err != nil {
+		t.Fatalf("ListZoneOversubscriptionTargets: %v", err)
+	}
+	if targets.DefaultOversubscriptionTarget != 1 || len(targets.OversubscriptionTargets) != 1 || targets.OversubscriptionTargets[0].OversubscriptionTarget != 2.5 {
+		t.Fatalf("targets = %+v", targets)
+	}
+
+	replaced, err := client.SetZoneOversubscriptionTargets(context.Background(), "zone-1", []ZoneOversubscriptionTarget{
+		{GPUType: "nvidia-l4", OversubscriptionTarget: 2.5},
+		{GPUType: "nvidia-h100", OversubscriptionTarget: 1.25},
+	})
+	if err != nil {
+		t.Fatalf("SetZoneOversubscriptionTargets: %v", err)
+	}
+	if replaced.DefaultOversubscriptionTarget != 1 || len(replaced.OversubscriptionTargets) != 2 || replaced.OversubscriptionTargets[1].GPUType != "nvidia-h100" {
+		t.Fatalf("replaced = %+v", replaced)
 	}
 }
 
@@ -191,7 +253,7 @@ func TestDeleteAndRevokeRoutes(t *testing.T) {
 			_, _ = w.Write([]byte(`{"clientId":"client-1","decommissionedAt":"2026-08-01T00:00:00Z"}`))
 		case "/api/v1/hosts/host-1/revoke":
 			if r.Method != http.MethodPost {
-				t.Fatalf("revoke node method = %s", r.Method)
+				t.Fatalf("revoke server method = %s", r.Method)
 			}
 			_, _ = w.Write([]byte(`{"hostId":"host-1","revokedAt":"2026-08-01T00:00:00Z"}`))
 		case "/api/v1/zones/zone-1":
@@ -210,7 +272,7 @@ func TestDeleteAndRevokeRoutes(t *testing.T) {
 	if err != nil {
 		t.Fatalf("UnenrollClient: %v", err)
 	}
-	if !deleted.NodeDeleted || deleted.ClientID != "client-1" {
+	if !deleted.ServerDeleted || deleted.ClientID != "client-1" {
 		t.Fatalf("deleted = %+v", deleted)
 	}
 	revokedClient, err := client.RevokeClient(context.Background(), "client-1")
@@ -220,12 +282,12 @@ func TestDeleteAndRevokeRoutes(t *testing.T) {
 	if revokedClient.ClientID != "client-1" {
 		t.Fatalf("revokedClient = %+v", revokedClient)
 	}
-	revokedNode, err := client.RevokeNode(context.Background(), "host-1")
+	revokedServer, err := client.RevokeServer(context.Background(), "host-1")
 	if err != nil {
-		t.Fatalf("RevokeNode: %v", err)
+		t.Fatalf("RevokeServer: %v", err)
 	}
-	if revokedNode.HostID != "host-1" {
-		t.Fatalf("revokedNode = %+v", revokedNode)
+	if revokedServer.ServerID != "host-1" {
+		t.Fatalf("revokedServer = %+v", revokedServer)
 	}
 	if err := client.DeleteZone(context.Background(), "zone-1"); err != nil {
 		t.Fatalf("DeleteZone: %v", err)
@@ -280,24 +342,24 @@ func TestEnrollmentCommands(t *testing.T) {
 		t.Fatalf("client env command %q should not contain a raw token", clientEnvCommand)
 	}
 
-	nodeCommand := client.NodeEnrollmentCommand(NodeEnrollmentCommandRequest{
-		EnrollmentToken: "tr_node",
+	serverCommand := client.ServerEnrollmentCommand(ServerEnrollmentCommandRequest{
+		EnrollmentToken: "tr_server",
 		IP:              "10.0.0.5",
 		Zone:            "zone-1",
 		PortRange:       "10000-10100",
-		NodeName:        "friendly node",
+		ServerName:      "friendly server",
 	})
 	for _, want := range []string{
 		"THUNDER_INSTALL_MODE=thunderd",
 		"THUNDER_CENTRAL_URL='https://central.test'",
-		"THUNDER_ENROLLMENT_TOKEN='tr_node'",
+		"THUNDER_ENROLLMENT_TOKEN='tr_server'",
 		"THUNDERD_IP='10.0.0.5'",
 		"THUNDER_ZONE='zone-1'",
 		"THUNDERD_PORT_RANGE='10000-10100'",
-		"THUNDERD_NODE_NAME='friendly node'",
+		"THUNDERD_NODE_NAME='friendly server'",
 	} {
-		if !strings.Contains(nodeCommand, want) {
-			t.Fatalf("node command %q missing %q", nodeCommand, want)
+		if !strings.Contains(serverCommand, want) {
+			t.Fatalf("server command %q missing %q", serverCommand, want)
 		}
 	}
 }

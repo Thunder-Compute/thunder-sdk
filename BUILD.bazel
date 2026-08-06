@@ -8,7 +8,7 @@ go_library(
         "doc.go",
         "enrollment.go",
         "errors.go",
-        "nodes.go",
+        "servers.go",
         "paths.go",
         "zones.go",
     ],

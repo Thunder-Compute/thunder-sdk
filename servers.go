@@ -9,21 +9,21 @@ import (
 	"time"
 )
 
-type CreateNodeEnrollmentRequest struct {
+type CreateServerEnrollmentRequest struct {
 	ZoneID           string `json:"zoneId"`
 	ExpiresInSeconds int64  `json:"expiresInSeconds,omitempty"`
 }
 
-type NodeEnrollmentCommandRequest struct {
+type ServerEnrollmentCommandRequest struct {
 	EnrollmentToken string
 	IP              string
 	Zone            string
 	PortRange       string
-	NodeName        string
+	ServerName      string
 }
 
-type Node struct {
-	HostID          string     `json:"hostId"`
+type Server struct {
+	ServerID        string     `json:"hostId"`
 	ZoneID          string     `json:"zoneId"`
 	DisplayName     string     `json:"displayName"`
 	Hostname        string     `json:"hostname"`
@@ -34,16 +34,12 @@ type Node struct {
 	LastSeenAt      *time.Time `json:"lastSeenAt,omitempty"`
 }
 
-type HostNode = Node
-
-type RevokeNodeResponse struct {
-	HostID    string    `json:"hostId"`
+type RevokeServerResponse struct {
+	ServerID  string    `json:"hostId"`
 	RevokedAt time.Time `json:"revokedAt"`
 }
 
-type RevokeHostResponse = RevokeNodeResponse
-
-func (c *Client) CreateNodeEnrollment(ctx context.Context, req CreateNodeEnrollmentRequest) (EnrollmentToken, error) {
+func (c *Client) CreateServerEnrollment(ctx context.Context, req CreateServerEnrollmentRequest) (EnrollmentToken, error) {
 	body := struct {
 		ZoneID           string `json:"zoneId"`
 		Role             string `json:"role"`
@@ -52,19 +48,19 @@ func (c *Client) CreateNodeEnrollment(ctx context.Context, req CreateNodeEnrollm
 	return c.createEnrollment(ctx, body)
 }
 
-func (c *Client) EnrollNode(ctx context.Context, req CreateNodeEnrollmentRequest) (EnrollmentToken, error) {
-	return c.CreateNodeEnrollment(ctx, req)
+func (c *Client) EnrollServer(ctx context.Context, req CreateServerEnrollmentRequest) (EnrollmentToken, error) {
+	return c.CreateServerEnrollment(ctx, req)
 }
 
-func (c *Client) UnenrollNode(ctx context.Context, enrollmentTokenID string) (DeleteEnrollmentNodeResponse, error) {
-	return c.DeleteEnrollmentNode(ctx, enrollmentTokenID)
+func (c *Client) UnenrollServer(ctx context.Context, enrollmentTokenID string) (DeleteEnrollmentServerResponse, error) {
+	return c.DeleteEnrollmentServer(ctx, enrollmentTokenID)
 }
 
-func (c *Client) NodeEnrollmentCommand(req NodeEnrollmentCommandRequest) string {
-	return nodeEnrollmentCommand(c.installURL, c.baseURL, req)
+func (c *Client) ServerEnrollmentCommand(req ServerEnrollmentCommandRequest) string {
+	return serverEnrollmentCommand(c.installURL, c.baseURL, req)
 }
 
-func nodeEnrollmentCommand(installURL, centralURL string, req NodeEnrollmentCommandRequest) string {
+func serverEnrollmentCommand(installURL, centralURL string, req ServerEnrollmentCommandRequest) string {
 	env := []string{
 		"THUNDER_INSTALL_MODE=thunderd",
 		"THUNDER_CENTRAL_URL=" + shellQuote(centralURL),
@@ -79,19 +75,15 @@ func nodeEnrollmentCommand(installURL, centralURL string, req NodeEnrollmentComm
 	if strings.TrimSpace(req.PortRange) != "" {
 		env = append(env, "THUNDERD_PORT_RANGE="+shellQuote(req.PortRange))
 	}
-	if strings.TrimSpace(req.NodeName) != "" {
-		env = append(env, "THUNDERD_NODE_NAME="+shellQuote(req.NodeName))
+	if strings.TrimSpace(req.ServerName) != "" {
+		env = append(env, "THUNDERD_NODE_NAME="+shellQuote(req.ServerName))
 	}
 	return fmt.Sprintf("curl -fsSL %s | sudo %s sh", shellQuote(installURL), strings.Join(env, " "))
 }
 
-func (c *Client) ListNodes(ctx context.Context, zoneID string) ([]Node, error) {
-	return c.ListHosts(ctx, zoneID)
-}
-
-func (c *Client) ListHosts(ctx context.Context, zoneID string) ([]Node, error) {
+func (c *Client) ListServers(ctx context.Context, zoneID string) ([]Server, error) {
 	var response struct {
-		Hosts []Node `json:"hosts"`
+		Hosts []Server `json:"hosts"`
 	}
 	path, err := endpointPath("organizationApi.hosts.list", nil, url.Values{"zoneId": []string{zoneID}})
 	if err != nil {
@@ -103,18 +95,14 @@ func (c *Client) ListHosts(ctx context.Context, zoneID string) ([]Node, error) {
 	return response.Hosts, nil
 }
 
-func (c *Client) RevokeNode(ctx context.Context, hostID string) (RevokeNodeResponse, error) {
-	return c.RevokeHost(ctx, hostID)
-}
-
-func (c *Client) RevokeHost(ctx context.Context, hostID string) (RevokeNodeResponse, error) {
-	var response RevokeNodeResponse
-	path, err := endpointPath("organizationApi.hosts.revoke", map[string]string{"hostId": hostID}, nil)
+func (c *Client) RevokeServer(ctx context.Context, serverID string) (RevokeServerResponse, error) {
+	var response RevokeServerResponse
+	path, err := endpointPath("organizationApi.hosts.revoke", map[string]string{"hostId": serverID}, nil)
 	if err != nil {
-		return RevokeNodeResponse{}, err
+		return RevokeServerResponse{}, err
 	}
 	if err := c.doJSON(ctx, http.MethodPost, path, nil, &response); err != nil {
-		return RevokeNodeResponse{}, err
+		return RevokeServerResponse{}, err
 	}
 	return response, nil
 }

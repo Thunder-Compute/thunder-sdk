@@ -46,8 +46,8 @@ func TestClientSendsBearerAndJSON(t *testing.T) {
 		if r.Method != http.MethodPost {
 			t.Fatalf("method = %s, want POST", r.Method)
 		}
-		if r.URL.Path != "/api/v1/zones" {
-			t.Fatalf("path = %s, want /api/v1/zones", r.URL.Path)
+		if r.URL.Path != "/api/v1/zones/ensure" {
+			t.Fatalf("path = %s, want /api/v1/zones/ensure", r.URL.Path)
 		}
 		if got := r.Header.Get("Authorization"); got != "Bearer tcapi_test" {
 			t.Fatalf("Authorization = %q", got)
@@ -68,7 +68,6 @@ func TestClientSendsBearerAndJSON(t *testing.T) {
 		if got := body["displayName"]; got != "prod" {
 			t.Fatalf("displayName = %v, want prod", got)
 		}
-		w.WriteHeader(http.StatusCreated)
 		_, _ = w.Write([]byte(`{"zoneId":"zone-1","orgId":"org-1","displayName":"prod"}`))
 	}))
 	defer server.Close()

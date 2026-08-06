@@ -14,7 +14,7 @@
     },
     "zones": {
       "list": "/api/v1/zones",
-      "create": "/api/v1/zones",
+      "create": "/api/v1/zones/ensure",
       "delete": "/api/v1/zones/{zoneId}",
       "oversubscriptionTargets": "/api/v1/zones/{zoneId}/oversubscription-targets"
     }

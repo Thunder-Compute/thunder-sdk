@@ -18,17 +18,16 @@ const (
 	RoleClient = "client"
 	RoleServer = "server"
 
-	CapabilityCreateClientEnrollmentToken      = "client_enrollment_tokens:create"
-	CapabilityCreateServerEnrollmentToken      = "server_enrollment_tokens:create"
-	CapabilityRevokeClient                     = "clients:revoke"
-	CapabilityRevokeHost                       = "hosts:revoke"
-	CapabilityReadHosts                        = "hosts:read"
-	CapabilityReadClients                      = "clients:read"
-	CapabilityReadZones                        = "zones:read"
-	CapabilityDeleteZone                       = "zones:delete"
-	CapabilityCreateZone                       = "zones:create"
-	CapabilityReadZoneOversubscriptionTargets  = "zones:oversubscription_targets:read"
-	CapabilityWriteZoneOversubscriptionTargets = "zones:oversubscription_targets:write"
+	CapabilityCreateClientEnrollmentToken = "client_enrollment_tokens:create"
+	CapabilityCreateServerEnrollmentToken = "server_enrollment_tokens:create"
+	CapabilityRevokeClient                = "clients:revoke"
+	CapabilityRevokeHost                  = "hosts:revoke"
+	CapabilityReadHosts                   = "hosts:read"
+	CapabilityReadClients                 = "clients:read"
+	CapabilityReadZones                   = "zones:read"
+	CapabilityWriteZones                  = "zones:write"
+	CapabilityDeleteZone                  = "zones:delete"
+	CapabilityCreateZone                  = "zones:create"
 )
 
 // Client is a typed SDK over Central's organization API-token bearer surface.

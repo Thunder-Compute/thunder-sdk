@@ -6,6 +6,8 @@ creates enrollment tokens, manages servers and clients, and works with zones.
 
 ## Install
 
+Requires Go 1.22 or newer.
+
 ```sh
 go get github.com/Thunder-Compute/thunder-sdk
 ```
@@ -41,6 +43,8 @@ Pass an empty base URL to use the default Thunder Central API endpoint:
 ```go
 client := thunder.NewClient("", apiToken)
 ```
+
+The client sends the token as a bearer token in the `Authorization` header.
 
 Use a custom endpoint, HTTP client, user agent, or installer URL when needed:
 
@@ -120,12 +124,35 @@ if thunder.IsForbidden(err) {
 }
 ```
 
+## API Token Capabilities
+
+Thunder Central API tokens need the capabilities required by the operation being
+called. The SDK exports capability constants such as
+`CapabilityCreateClientEnrollmentToken`, `CapabilityReadZones`, and
+`CapabilityWriteZones` so integrations can keep their setup code and
+documentation aligned with the API surface they use.
+
 ## Development
 
 Run the test suite with:
+
+```sh
+go test ./...
+```
+
+If you are working inside Thunder's Bazel workspace, the equivalent target is:
 
 ```sh
 bazel test //thunder-sdk:thunder_test
 ```
 
 This module has no third-party Go dependencies.
+
+## Versioning
+
+Public releases should be tagged with semantic versions, for example `v0.1.0`.
+Consumers can then pin a release with:
+
+```sh
+go get github.com/Thunder-Compute/thunder-sdk@v0.1.0
+```

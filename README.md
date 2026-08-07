@@ -4,6 +4,14 @@ Thunder SDK is a small Go client library for Thunder Compute integrations. It
 wraps the Thunder Central organization API-token surface used by automation that
 creates enrollment tokens, manages servers and clients, and works with zones.
 
+## Audience
+
+This SDK is intended for **Thunder Enterprise** users building automation against
+Thunder Compute. It is not intended for Thunder
+Cloud users; cloud users should use the [Thunder CLI](https://github.com/Thunder-Compute/thunder-cli)
+and [Thunder Compute Documentation](https://www.thundercompute.com/docs). Those resources
+detail how to interface with instances and snapshots for our cloud offering.
+
 ## Install
 
 Requires Go 1.22 or newer.

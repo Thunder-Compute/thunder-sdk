@@ -152,7 +152,7 @@ func TestListRoutes(t *testing.T) {
 			if r.Method != http.MethodGet || r.URL.Query().Get("zoneId") != "zone-1" {
 				t.Fatalf("hosts request = %s %s", r.Method, r.URL.String())
 			}
-			_, _ = w.Write([]byte(`{"hosts":[{"hostId":"host-1","zoneId":"zone-1","displayName":"server","hostname":"server-1","gpuType":"nvidia-l4","gpuCount":1,"status":"online"}]}`))
+			_, _ = w.Write([]byte(`{"hosts":[{"hostId":"host-1","zoneId":"zone-1","displayName":"server","hostname":"server-1","gpuType":"nvidia-l4","gpuCount":1,"status":"online","configurations":{"cordoned":true}}]}`))
 		default:
 			t.Fatalf("unexpected path %s", r.URL.Path)
 		}
@@ -178,7 +178,7 @@ func TestListRoutes(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ListServers: %v", err)
 	}
-	if len(servers) != 1 || servers[0].ServerID != "host-1" || servers[0].Status != "online" {
+	if len(servers) != 1 || servers[0].ServerID != "host-1" || servers[0].Status != "online" || !servers[0].Configurations.Cordoned {
 		t.Fatalf("servers = %+v", servers)
 	}
 }

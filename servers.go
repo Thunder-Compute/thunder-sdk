@@ -22,16 +22,23 @@ type ServerEnrollmentCommandRequest struct {
 	ServerName      string
 }
 
+// ServerConfigurations contains operator-declared controls that affect how
+// the control plane uses a server independently of its reported health.
+type ServerConfigurations struct {
+	Cordoned bool `json:"cordoned"`
+}
+
 type Server struct {
-	ServerID        string     `json:"hostId"`
-	ZoneID          string     `json:"zoneId"`
-	DisplayName     string     `json:"displayName"`
-	Hostname        string     `json:"hostname"`
-	ThunderdVersion *string    `json:"thunderdVersion,omitempty"`
-	GPUType         string     `json:"gpuType"`
-	GPUCount        uint32     `json:"gpuCount"`
-	Status          string     `json:"status"`
-	LastSeenAt      *time.Time `json:"lastSeenAt,omitempty"`
+	ServerID        string               `json:"hostId"`
+	ZoneID          string               `json:"zoneId"`
+	DisplayName     string               `json:"displayName"`
+	Hostname        string               `json:"hostname"`
+	ThunderdVersion *string              `json:"thunderdVersion,omitempty"`
+	GPUType         string               `json:"gpuType"`
+	GPUCount        uint32               `json:"gpuCount"`
+	Status          string               `json:"status"`
+	LastSeenAt      *time.Time           `json:"lastSeenAt,omitempty"`
+	Configurations  ServerConfigurations `json:"configurations"`
 }
 
 type RevokeServerResponse struct {

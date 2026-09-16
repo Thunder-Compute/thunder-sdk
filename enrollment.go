@@ -26,7 +26,7 @@ type DeleteEnrollmentServerResponse struct {
 	DeletedAt         time.Time `json:"deletedAt"`
 }
 
-func (c *Client) createEnrollment(ctx context.Context, body any) (EnrollmentToken, error) {
+func (c *Thunder) createEnrollment(ctx context.Context, body any) (EnrollmentToken, error) {
 	var response EnrollmentToken
 	path, err := endpointPath("organizationApi.enrollmentTokens.create", nil, nil)
 	if err != nil {
@@ -38,7 +38,7 @@ func (c *Client) createEnrollment(ctx context.Context, body any) (EnrollmentToke
 	return response, nil
 }
 
-func (c *Client) DeleteEnrollmentServer(ctx context.Context, enrollmentTokenID string) (DeleteEnrollmentServerResponse, error) {
+func (c *Thunder) DeleteEnrollmentServer(ctx context.Context, enrollmentTokenID string) (DeleteEnrollmentServerResponse, error) {
 	var response DeleteEnrollmentServerResponse
 	path, err := endpointPath("organizationApi.enrollmentTokens.deleteServer", map[string]string{"enrollmentTokenId": enrollmentTokenID}, nil)
 	if err != nil {

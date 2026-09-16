@@ -20,7 +20,7 @@ type ClientEnrollmentCommandRequest struct {
 	EnrollmentTokenEnv string
 }
 
-type RegisteredClient struct {
+type Client struct {
 	ClientID         string     `json:"clientId"`
 	ZoneID           string     `json:"zoneId"`
 	DisplayName      string     `json:"displayName"`
@@ -37,7 +37,7 @@ type RevokeClientResponse struct {
 	DecommissionedAt time.Time `json:"decommissionedAt"`
 }
 
-func (c *Client) CreateClientEnrollment(ctx context.Context, req CreateClientEnrollmentRequest) (EnrollmentToken, error) {
+func (c *Thunder) CreateClientEnrollment(ctx context.Context, req CreateClientEnrollmentRequest) (EnrollmentToken, error) {
 	body := struct {
 		ZoneID           string `json:"zoneId"`
 		Role             string `json:"role"`
@@ -48,19 +48,19 @@ func (c *Client) CreateClientEnrollment(ctx context.Context, req CreateClientEnr
 	return c.createEnrollment(ctx, body)
 }
 
-func (c *Client) EnrollClient(ctx context.Context, req CreateClientEnrollmentRequest) (EnrollmentToken, error) {
+func (c *Thunder) EnrollClient(ctx context.Context, req CreateClientEnrollmentRequest) (EnrollmentToken, error) {
 	return c.CreateClientEnrollment(ctx, req)
 }
 
-func (c *Client) UnenrollClient(ctx context.Context, enrollmentTokenID string) (DeleteEnrollmentServerResponse, error) {
+func (c *Thunder) UnenrollClient(ctx context.Context, enrollmentTokenID string) (DeleteEnrollmentServerResponse, error) {
 	return c.DeleteEnrollmentServer(ctx, enrollmentTokenID)
 }
 
-func (c *Client) ClientEnrollmentCommand(enrollmentToken string) string {
+func (c *Thunder) ClientEnrollmentCommand(enrollmentToken string) string {
 	return c.ClientEnrollmentCommandFor(ClientEnrollmentCommandRequest{EnrollmentToken: enrollmentToken})
 }
 
-func (c *Client) ClientEnrollmentCommandFor(req ClientEnrollmentCommandRequest) string {
+func (c *Thunder) ClientEnrollmentCommandFor(req ClientEnrollmentCommandRequest) string {
 	return clientEnrollmentCommand(c.installURL, c.baseURL, req)
 }
 
@@ -73,9 +73,9 @@ func clientEnrollmentCommand(installURL, centralURL string, req ClientEnrollment
 		shellQuote(installURL), shellQuote(centralURL), enrollmentToken)
 }
 
-func (c *Client) ListClients(ctx context.Context, zoneID string) ([]RegisteredClient, error) {
+func (c *Thunder) ListClients(ctx context.Context, zoneID string) ([]Client, error) {
 	var response struct {
-		Clients []RegisteredClient `json:"clients"`
+		Clients []Client `json:"clients"`
 	}
 	path, err := endpointPath("organizationApi.clients.list", nil, url.Values{"zoneId": []string{zoneID}})
 	if err != nil {
@@ -87,7 +87,7 @@ func (c *Client) ListClients(ctx context.Context, zoneID string) ([]RegisteredCl
 	return response.Clients, nil
 }
 
-func (c *Client) RevokeClient(ctx context.Context, clientID string) (RevokeClientResponse, error) {
+func (c *Thunder) RevokeClient(ctx context.Context, clientID string) (RevokeClientResponse, error) {
 	var response RevokeClientResponse
 	path, err := endpointPath("organizationApi.clients.revoke", map[string]string{"clientId": clientID}, nil)
 	if err != nil {

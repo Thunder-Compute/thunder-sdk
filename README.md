@@ -36,7 +36,7 @@ import (
 
 func main() {
 	ctx := context.Background()
-	client := thunder.NewClient("", os.Getenv("THUNDER_API_TOKEN"))
+	client := thunder.NewThunder("", os.Getenv("THUNDER_API_TOKEN"))
 
 	zones, err := client.ListZones(ctx)
 	if err != nil {
@@ -49,7 +49,7 @@ func main() {
 Pass an empty base URL to use the default Thunder Central API endpoint:
 
 ```go
-client := thunder.NewClient("", apiToken)
+client := thunder.NewThunder("", apiToken)
 ```
 
 The client sends the token as a bearer token in the `Authorization` header.
@@ -57,7 +57,7 @@ The client sends the token as a bearer token in the `Authorization` header.
 Use a custom endpoint, HTTP client, user agent, or installer URL when needed:
 
 ```go
-client := thunder.NewClient(
+client := thunder.NewThunder(
 	"https://api.thundercompute.com:2096",
 	apiToken,
 	thunder.WithUserAgent("my-integration/1.0"),

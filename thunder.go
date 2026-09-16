@@ -30,8 +30,8 @@ const (
 	CapabilityCreateZone                  = "zones:create"
 )
 
-// Client is a typed SDK over Central's organization API-token bearer surface.
-type Client struct {
+// Thunder is a typed SDK over Central's organization API-token bearer surface.
+type Thunder struct {
 	baseURL    string
 	apiToken   string
 	userAgent  string
@@ -39,10 +39,10 @@ type Client struct {
 	installURL string
 }
 
-type Option func(*Client)
+type Option func(*Thunder)
 
 func WithHTTPClient(httpClient *http.Client) Option {
-	return func(c *Client) {
+	return func(c *Thunder) {
 		if httpClient != nil {
 			c.httpClient = httpClient
 		}
@@ -50,7 +50,7 @@ func WithHTTPClient(httpClient *http.Client) Option {
 }
 
 func WithUserAgent(userAgent string) Option {
-	return func(c *Client) {
+	return func(c *Thunder) {
 		if strings.TrimSpace(userAgent) != "" {
 			c.userAgent = strings.TrimSpace(userAgent)
 		}
@@ -58,18 +58,18 @@ func WithUserAgent(userAgent string) Option {
 }
 
 func WithInstallURL(installURL string) Option {
-	return func(c *Client) {
+	return func(c *Thunder) {
 		if strings.TrimSpace(installURL) != "" {
 			c.installURL = strings.TrimSpace(installURL)
 		}
 	}
 }
 
-func NewClient(baseURL, apiToken string, opts ...Option) *Client {
+func NewThunder(baseURL, apiToken string, opts ...Option) *Thunder {
 	if strings.TrimSpace(baseURL) == "" {
 		baseURL = DefaultBaseURL
 	}
-	c := &Client{
+	c := &Thunder{
 		baseURL:    strings.TrimRight(baseURL, "/"),
 		apiToken:   strings.TrimSpace(apiToken),
 		userAgent:  "thunder-sdk/dev",
@@ -82,7 +82,7 @@ func NewClient(baseURL, apiToken string, opts ...Option) *Client {
 	return c
 }
 
-func (c *Client) doJSON(ctx context.Context, method, path string, body, out any) error {
+func (c *Thunder) doJSON(ctx context.Context, method, path string, body, out any) error {
 	var bodyReader io.Reader
 	if body != nil {
 		data, err := json.Marshal(body)

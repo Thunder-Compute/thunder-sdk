@@ -33,6 +33,7 @@ type Server struct {
 	ZoneID          string               `json:"zoneId"`
 	DisplayName     string               `json:"displayName"`
 	Hostname        string               `json:"hostname"`
+	IP              string               `json:"ip"`
 	ThunderdVersion *string              `json:"thunderdVersion,omitempty"`
 	GPUType         string               `json:"gpuType"`
 	GPUCount        uint32               `json:"gpuCount"`
@@ -46,7 +47,7 @@ type RevokeServerResponse struct {
 	RevokedAt time.Time `json:"revokedAt"`
 }
 
-func (c *Client) CreateServerEnrollment(ctx context.Context, req CreateServerEnrollmentRequest) (EnrollmentToken, error) {
+func (c *Thunder) CreateServerEnrollment(ctx context.Context, req CreateServerEnrollmentRequest) (EnrollmentToken, error) {
 	body := struct {
 		ZoneID           string `json:"zoneId"`
 		Role             string `json:"role"`
@@ -55,15 +56,15 @@ func (c *Client) CreateServerEnrollment(ctx context.Context, req CreateServerEnr
 	return c.createEnrollment(ctx, body)
 }
 
-func (c *Client) EnrollServer(ctx context.Context, req CreateServerEnrollmentRequest) (EnrollmentToken, error) {
+func (c *Thunder) EnrollServer(ctx context.Context, req CreateServerEnrollmentRequest) (EnrollmentToken, error) {
 	return c.CreateServerEnrollment(ctx, req)
 }
 
-func (c *Client) UnenrollServer(ctx context.Context, enrollmentTokenID string) (DeleteEnrollmentServerResponse, error) {
+func (c *Thunder) UnenrollServer(ctx context.Context, enrollmentTokenID string) (DeleteEnrollmentServerResponse, error) {
 	return c.DeleteEnrollmentServer(ctx, enrollmentTokenID)
 }
 
-func (c *Client) ServerEnrollmentCommand(req ServerEnrollmentCommandRequest) string {
+func (c *Thunder) ServerEnrollmentCommand(req ServerEnrollmentCommandRequest) string {
 	return serverEnrollmentCommand(c.installURL, c.baseURL, req)
 }
 
@@ -88,7 +89,7 @@ func serverEnrollmentCommand(installURL, centralURL string, req ServerEnrollment
 	return fmt.Sprintf("curl -fsSL %s | sudo %s sh", shellQuote(installURL), strings.Join(env, " "))
 }
 
-func (c *Client) ListServers(ctx context.Context, zoneID string) ([]Server, error) {
+func (c *Thunder) ListServers(ctx context.Context, zoneID string) ([]Server, error) {
 	var response struct {
 		Hosts []Server `json:"hosts"`
 	}
@@ -102,7 +103,7 @@ func (c *Client) ListServers(ctx context.Context, zoneID string) ([]Server, erro
 	return response.Hosts, nil
 }
 
-func (c *Client) RevokeServer(ctx context.Context, serverID string) (RevokeServerResponse, error) {
+func (c *Thunder) RevokeServer(ctx context.Context, serverID string) (RevokeServerResponse, error) {
 	var response RevokeServerResponse
 	path, err := endpointPath("organizationApi.hosts.revoke", map[string]string{"hostId": serverID}, nil)
 	if err != nil {

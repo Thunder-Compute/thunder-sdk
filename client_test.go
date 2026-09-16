@@ -72,7 +72,7 @@ func TestClientSendsBearerAndJSON(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewClient(server.URL+"/", " tcapi_test ", WithHTTPClient(server.Client()), WithUserAgent("test-sdk"))
+	client := NewThunder(server.URL+"/", " tcapi_test ", WithHTTPClient(server.Client()), WithUserAgent("test-sdk"))
 	zone, err := client.CreateZone(context.Background(), CreateZoneRequest{DisplayName: "prod"})
 	if err != nil {
 		t.Fatalf("CreateZone: %v", err)
@@ -118,7 +118,7 @@ func TestEnrollmentRequests(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewClient(server.URL, "tcapi_test", WithHTTPClient(server.Client()))
+	client := NewThunder(server.URL, "tcapi_test", WithHTTPClient(server.Client()))
 	clientEnrollment, err := client.EnrollClient(context.Background(), CreateClientEnrollmentRequest{ZoneID: "zone-1", GPUType: "nvidia-l4", GPUCount: 2, ExpiresInSeconds: 3600})
 	if err != nil {
 		t.Fatalf("EnrollClient: %v", err)
@@ -159,7 +159,7 @@ func TestListRoutes(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewClient(server.URL, "tcapi_test", WithHTTPClient(server.Client()))
+	client := NewThunder(server.URL, "tcapi_test", WithHTTPClient(server.Client()))
 	zones, err := client.ListZones(context.Background())
 	if err != nil {
 		t.Fatalf("ListZones: %v", err)
@@ -216,7 +216,7 @@ func TestZoneOversubscriptionTargets(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewClient(server.URL, "tcapi_test", WithHTTPClient(server.Client()))
+	client := NewThunder(server.URL, "tcapi_test", WithHTTPClient(server.Client()))
 	targets, err := client.ListZoneOversubscriptionTargets(context.Background(), "zone-1")
 	if err != nil {
 		t.Fatalf("ListZoneOversubscriptionTargets: %v", err)
@@ -266,7 +266,7 @@ func TestDeleteAndRevokeRoutes(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewClient(server.URL, "tcapi_test", WithHTTPClient(server.Client()))
+	client := NewThunder(server.URL, "tcapi_test", WithHTTPClient(server.Client()))
 	deleted, err := client.UnenrollClient(context.Background(), "enroll-1")
 	if err != nil {
 		t.Fatalf("UnenrollClient: %v", err)
@@ -300,7 +300,7 @@ func TestAPIError(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewClient(server.URL, "tcapi_test", WithHTTPClient(server.Client()))
+	client := NewThunder(server.URL, "tcapi_test", WithHTTPClient(server.Client()))
 	_, err := client.ListZones(context.Background())
 	if err == nil {
 		t.Fatal("ListZones error = nil, want error")
@@ -318,7 +318,7 @@ func TestAPIError(t *testing.T) {
 }
 
 func TestEnrollmentCommands(t *testing.T) {
-	client := NewClient("https://central.test", "tcapi_test", WithInstallURL("https://install.test/install.sh"))
+	client := NewThunder("https://central.test", "tcapi_test", WithInstallURL("https://install.test/install.sh"))
 
 	clientCommand := client.ClientEnrollmentCommand("tr_client's token")
 	for _, want := range []string{

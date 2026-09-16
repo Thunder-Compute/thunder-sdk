@@ -34,7 +34,7 @@ type ZoneOversubscriptionTargetsResponse struct {
 	DefaultOversubscriptionTarget float64                      `json:"defaultOversubscriptionTarget"`
 }
 
-func (c *Client) ListZones(ctx context.Context) ([]Zone, error) {
+func (c *Thunder) ListZones(ctx context.Context) ([]Zone, error) {
 	var response struct {
 		Zones []Zone `json:"zones"`
 	}
@@ -48,7 +48,7 @@ func (c *Client) ListZones(ctx context.Context) ([]Zone, error) {
 	return response.Zones, nil
 }
 
-func (c *Client) CreateZone(ctx context.Context, req CreateZoneRequest) (CreateZoneResponse, error) {
+func (c *Thunder) CreateZone(ctx context.Context, req CreateZoneRequest) (CreateZoneResponse, error) {
 	var response CreateZoneResponse
 	path, err := endpointPath("organizationApi.zones.create", nil, nil)
 	if err != nil {
@@ -60,7 +60,7 @@ func (c *Client) CreateZone(ctx context.Context, req CreateZoneRequest) (CreateZ
 	return response, nil
 }
 
-func (c *Client) DeleteZone(ctx context.Context, zoneID string) error {
+func (c *Thunder) DeleteZone(ctx context.Context, zoneID string) error {
 	path, err := endpointPath("organizationApi.zones.delete", map[string]string{"zoneId": zoneID}, nil)
 	if err != nil {
 		return err
@@ -68,7 +68,7 @@ func (c *Client) DeleteZone(ctx context.Context, zoneID string) error {
 	return c.doJSON(ctx, http.MethodDelete, path, nil, nil)
 }
 
-func (c *Client) ListZoneOversubscriptionTargets(ctx context.Context, zoneID string) (ZoneOversubscriptionTargetsResponse, error) {
+func (c *Thunder) ListZoneOversubscriptionTargets(ctx context.Context, zoneID string) (ZoneOversubscriptionTargetsResponse, error) {
 	var response ZoneOversubscriptionTargetsResponse
 	path, err := endpointPath("organizationApi.zones.oversubscriptionTargets", map[string]string{"zoneId": zoneID}, nil)
 	if err != nil {
@@ -80,7 +80,7 @@ func (c *Client) ListZoneOversubscriptionTargets(ctx context.Context, zoneID str
 	return response, nil
 }
 
-func (c *Client) SetZoneOversubscriptionTargets(ctx context.Context, zoneID string, targets []ZoneOversubscriptionTarget) (ZoneOversubscriptionTargetsResponse, error) {
+func (c *Thunder) SetZoneOversubscriptionTargets(ctx context.Context, zoneID string, targets []ZoneOversubscriptionTarget) (ZoneOversubscriptionTargetsResponse, error) {
 	var response ZoneOversubscriptionTargetsResponse
 	req := struct {
 		OversubscriptionTargets []ZoneOversubscriptionTarget `json:"oversubscriptionTargets"`
